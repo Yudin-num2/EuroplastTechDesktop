@@ -1,4 +1,4 @@
-import pandas as pd
+import pandas as pd # type: ignore
 from datetime import datetime
 import os
 import matplotlib.pyplot as plt
