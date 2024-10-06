@@ -1,9 +1,10 @@
 import sys
-from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
-                             QLabel, QPushButton, QDialog, QDialogButtonBox, 
-                             QMainWindow, QListView, QPushButton, QSizePolicy)
+from PyQt5.QtWidgets import (QApplication, QWidget, QHBoxLayout, 
+                             QMainWindow, QListView, QAction)
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import QModelIndex
+from CustomWidgets.custom_buttons import CustomBtn
+from CustomWidgets.custom_dialogs import AlertDialog
 from DB import get_current_tasks
 from dataModels.tasksDataModel import Tasks, Task
 
@@ -17,31 +18,27 @@ class EuroplastTechDesktop(QMainWindow):
 
         centralWidget = QWidget()
         self.setCentralWidget(centralWidget)
+        
+        menubar = self.menuBar()
+        file_menu = menubar.addMenu('Отчеты')
+
+        tasks_action = QAction('Задачи', self)
+        open_action = QAction('Открыть', self)
+        file_menu.addAction(new_action)
+        file_menu.addAction(open_action)
+
+        # Создаем меню "Вставка"
+        insert_menu = menubar.addMenu('Вставка')
+
+        # Добавляем действия в меню "Вставка"
+        paste_action = QAction('Вставить', self)
+        copy_action = QAction('Копировать', self)
+        insert_menu.addAction(paste_action)
+        insert_menu.addAction(copy_action)
+
+        self.statusBar().showMessage("Ready")
 
         self.mainLayout = QHBoxLayout(centralWidget)
-
-        self.burgerButton = CustomBtn("☰")
-        self.burgerButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.burgerButton.clicked.connect(self.toggle_menu)
-
-        self.mainLayout.addWidget(self.burgerButton)
-
-        self.menuContainer = QWidget()
-        self.menuLayout = QVBoxLayout(self.menuContainer)
-
-        self.menuLayout.setSpacing(20)
-        self.menuButton1 = QPushButton("Меню 1")
-        self.menuButton2 = QPushButton("Меню 2")
-        self.menuButton3 = QPushButton("Меню 3")
-
-        self.menuLayout.addWidget(self.menuButton1)
-        self.menuLayout.addWidget(self.menuButton2)
-        self.menuLayout.addWidget(self.menuButton3)
-        self.menuLayout.addStretch(100)
-        self.menuContainer.setFixedWidth(150)
-        self.menuContainer.hide()
-
-        self.mainLayout.addWidget(self.menuContainer)
 
         self.tasksListView = QListView()
         self.tasksModel = QStandardItemModel()
@@ -51,18 +48,12 @@ class EuroplastTechDesktop(QMainWindow):
         self.tasks = [Task(**task_data) for task_data in self._data]
 
         for task in self.tasks:
-            item = QStandardItem(task.task)
+            item = QStandardItem(f'Задача: {task.task}, статус: {task.status}')
             self.tasksModel.appendRow(item)
 
         self.tasksListView.clicked.connect(self.on_task_selected)
 
         self.mainLayout.addWidget(self.tasksListView)
-
-    def toggle_menu(self):
-        if self.menuContainer.isVisible():
-            self.menuContainer.hide()
-        else:
-            self.menuContainer.show()
 
     def on_task_selected(self, index: QModelIndex):
         if index.isValid():
@@ -70,32 +61,10 @@ class EuroplastTechDesktop(QMainWindow):
             print(f"Выбрана задача: {selected_task.task}, статус: {selected_task.status}")
 
 
-class AlertDialog(QDialog):
-    def __init__(self, message):
-        super().__init__()
 
-        self.message = message
-        self.setWindowTitle("Уведомление!")
-
-        self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        self.buttonBox.accepted.connect(self.accept)
-        self.buttonBox.rejected.connect(self.reject)
-
-        layout = QVBoxLayout()
-        message = QLabel(self.message)
-        layout.addWidget(message)
-        layout.addWidget(self.buttonBox)
-        self.setLayout(layout)
-
-class CustomBtn(QPushButton): 
-    def __init__(self, text: str = 'btn', width: int = 100, height: int = 50):
-        super().__init__()
-
-        self.setStyleSheet(
-            "QPushButton {background-color: rgb(255, 0, 255); border-radius: 20px;}"
-        )
-        self.setText(text)
-        self.setFixedSize(width, height)
+class FullTaskInfo(QWidget):
+    def __init__(self, task: Task):
+        
 
 
 if __name__ == "__main__":
